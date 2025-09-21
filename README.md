@@ -85,6 +85,7 @@ parent: все процессы завершены
 Во время выполнения программы выполнены команды:
 `ps -ef --forest | head -n 30 | cat`
 `pstree -p | head -n 50 | cat`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ ps -ef --forest | head -n 30 | cat
@@ -122,6 +123,7 @@ root          32       2  0 09:01 ?        00:00:00  \_ [migration/2]
 Но они не показали ничего, что связано с нашими процессами. Это скорее всего связано с тем, что приоритет вывода системных процессов: Утилиты ps и pstree по умолчанию сортируют или отображают процессы в таком порядке, что в начале списка оказываются системные процессы (с PID 1, systemd или init и их непосредственные дети, часто запущенные от пользователя root). Процессы обычного пользователя (в моем случае, sancher) показываются значительно ниже. Команда head -n 30 обрезает весь вывод после 30-й строки, и если мои процессы находятся на 35-й или 200-й позиции, они просто не попадают в усеченный вывод.
 **Поэтому используем альтернативные команды для поиска наших процессов:**
 `ps -ef --forest | grep -E "(fork.py|python3)" | head -n 10`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ ps -ef --forest | grep -E "(fork.py|python3)" | head -n 10
@@ -133,6 +135,7 @@ sancher     5983    5527  0 10:19 pts/1    00:00:00  |       \_ grep --color=aut
 ```
 
 `pstree -p 5979`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ pstree -p 5979
@@ -142,6 +145,7 @@ python3(5979)─┬─python3(5980)
 Вывод: Наглядно видна древовидная структура процессов. Родительский процесс (5979) создал двух дочерних процессов (5980 и 5981), которые отображаются с отступами в выводе ps --forest и в виде дерева в pstree.
 ### 3. Изучение файловой системы /proc
 Команда: `echo $$`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ echo $$
@@ -149,6 +153,7 @@ sancher@Ubuntu:~$ echo $$
 ```
 ##### Вывод: PID моего текущего bash-сеанса — 5527. Это уникальный идентификатор, который система присвоила моему терминалу.
 Команда: `cat /proc/5527/cmdline | tr '\0' ' '; echo`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ cat /proc/5527/cmdline | tr '\0' ' '; echo
@@ -156,7 +161,10 @@ bash
 ```
 ###### Вывод:
 Мой текущий процесс bash был запущен просто командой bash, без дополнительных аргументов или скриптов.
-Команда: `head -n 20 /proc/5527/status`
+Команда:
+
+`head -n 20 /proc/5527/status`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ head -n 20 /proc/5527/status
@@ -184,7 +192,10 @@ VmLck:	       0 kB
 ##### Вывод: 
 с помощью данной команды смогли проанализировать ключевые поля статуса процесса.
 
-Команда: `ls -l /proc/5527/fd`
+Команда: 
+
+`ls -l /proc/5527/fd`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ ls -l /proc/5527/fd
@@ -197,7 +208,10 @@ lrwx------ 1 sancher sancher 64 Sep 21 10:38 255 -> /dev/pts/1
 ```
 ### 4. Анализ нагрузки системы
 ##### Топ процессов по CPU
-Команда: `ps -eo pid,ppid,comm,state,%cpu,%mem,etime --sort=-%cpu | head -n 15`
+Команда: 
+
+`ps -eo pid,ppid,comm,state,%cpu,%mem,etime --sort=-%cpu | head -n 15`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ ps -eo pid,ppid,comm,state,%cpu,%mem,etime --sort=-%cpu | head -n 15 | cat
@@ -218,7 +232,10 @@ sancher@Ubuntu:~$ ps -eo pid,ppid,comm,state,%cpu,%mem,etime --sort=-%cpu | head
      18       2 rcu_preempt     I  0.0  0.0    02:11:58
 ```
 ##### Топ процессов по памяти
-Команда: `ps -eo pid,ppid,comm,state,%cpu,%mem,rss --sort=-%mem | head -n 15 | cat`
+Команда: 
+
+`ps -eo pid,ppid,comm,state,%cpu,%mem,rss --sort=-%mem | head -n 15 | cat`
+
 **Результат:**
 ```bash
 sancher@Ubuntu:~$ ps -eo pid,ppid,comm,state,%cpu,%mem,rss --sort=-%mem | head -n 15 | cat
@@ -239,7 +256,10 @@ sancher@Ubuntu:~$ ps -eo pid,ppid,comm,state,%cpu,%mem,rss --sort=-%mem | head -
    6665    2052 gjs             S  0.2  1.5 60848
    2224    2012 evolution-alarm S  0.0  1.5 60212
 ```
-Команда: `pidstat -u -r -d 1 5`
+Команда:
+
+`pidstat -u -r -d 1 5`
+
 **Резульат:**
 ```bash
 sancher@Ubuntu:~$ pidstat -u -r -d 1 5 
